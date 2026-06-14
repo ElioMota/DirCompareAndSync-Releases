@@ -34,6 +34,32 @@ Inspiração de fluxo: [FreeFileSync](https://freefilesync.org) — com confirma
 
 ---
 
+## Capturas de ecrã
+
+### Comparação entre pastas locais
+
+Grelha com diferenças, filtros e pré-visualização das acções antes de sincronizar.
+
+![Comparação de pastas locais](docs/screenshots/comparacao-local.png)
+
+### Sincronização com MEGA
+
+Compare e sincronize pastas locais com a cloud **MEGA** (também suporta FTP/FTPS e Google Drive).
+
+![Sincronização com MEGA](docs/screenshots/sincronizar-mega.png)
+
+### Modos de sincronização
+
+Actualizar, espelhar, bidirecional ou manual — escolha o modo adequado a cada tarefa.
+
+![Modos de sincronização](docs/screenshots/modos-sincronizacao.png)
+
+### Janela Sobre
+
+![Janela Sobre DirCompareAndSync](docs/screenshots/janela-sobre.png)
+
+---
+
 ## Instalação (Windows 10/11, 64 bits)
 
 1. Descarregue **`DirCompareAndSync-Installer.exe`** (link acima).
