@@ -2,7 +2,9 @@
 
 **Comparar e sincronizar pastas no Windows** — com **pré-visualização** antes de copiar ou apagar ficheiros.
 
-Ferramenta gratuita para **backup de pastas**, **sincronização de ficheiros** e **comparação de diretórios**. Suporta pastas locais, partilhas de rede (UNC), **FTP/FTPS**, **MEGA** e **Google Drive**.
+Ferramenta **gratuita** para **backup de pastas**, **sincronização de ficheiros** e **comparação de diretórios**. Suporta pastas locais, partilhas de rede (UNC), **FTP/FTPS**, **MEGA** e **Google Drive**.
+
+> **Gratuito para empresas e ambiente empresarial** — pode instalar e usar em toda a organização (empresas, escolas, serviços públicos, etc.) **sem custo de licenciamento** por posto, servidor ou volume de dados. Não é necessária licença paga para uso comercial ou profissional.
 
 Inspiração de fluxo: [FreeFileSync](https://freefilesync.org) — com confirmação obrigatória antes de sincronizar.
 
@@ -112,13 +114,15 @@ Ou instale por cima com o instalador mais recente — as sessões são preservad
 
 ## Palavras-chave
 
-*folder sync, directory compare, file synchronization, backup folders, Windows sync tool, FreeFileSync alternative, FTP sync, MEGA sync, Google Drive sync, comparar pastas, sincronizar pastas, backup de ficheiros*
+*folder sync, directory compare, file synchronization, backup folders, Windows sync tool, FreeFileSync alternative, FTP sync, MEGA sync, Google Drive sync, comparar pastas, sincronizar pastas, backup de ficheiros, software gratuito empresas, gratuito ambiente empresarial, sincronização ficheiros empresa, free enterprise file sync, free business backup windows*
 
 ---
 
 ## Licença e autor
 
 © 2026 **Elio Mota**. Todos os direitos reservados.
+
+**Utilização gratuita:** o DirCompareAndSync é gratuito para uso pessoal, profissional e em **ambiente empresarial**, sem taxas de licenciamento por posto ou volume de dados. Consulte a janela **Ajuda → Sobre** na aplicação para o aviso completo e condições de atribuição ao autor.
 
 Este repositório contém **instaladores e pacotes de actualização**. O código fonte é mantido separadamente.
 
