@@ -1,0 +1,58 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DirCompareAndSync.Desktop.Views.UpdateConfirmWindow"
+        Title="Actualização disponível"
+        Width="660"
+        Height="500"
+        MinWidth="560"
+        MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        Background="{StaticResource BrushBackground}">
+
+  <Border Padding="24" Background="{StaticResource BrushSurface}">
+    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16">
+      <TextBlock Grid.Row="0"
+                 x:Name="MessageText"
+                 TextWrapping="Wrap"
+                 FontSize="13"
+                 LineHeight="20"/>
+
+      <Border Grid.Row="1"
+              Background="{StaticResource BrushBackground}"
+              BorderBrush="{StaticResource BrushBorder}"
+              BorderThickness="1"
+              CornerRadius="4"
+              Padding="12">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Spacing="8">
+            <TextBlock x:Name="NotesTitleText" Classes="section-title"/>
+            <TextBlock x:Name="HighlightsText"
+                       TextWrapping="Wrap"
+                       FontSize="12"
+                       LineHeight="20"/>
+            <HyperlinkButton x:Name="ReleaseLink"
+                             Content="Ver release completa no GitHub"
+                             FontSize="11"
+                             IsVisible="False"
+                             HorizontalAlignment="Left"/>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+
+      <StackPanel Grid.Row="2" Spacing="10">
+        <TextBlock x:Name="FooterHintText"
+                   Classes="muted"
+                   FontSize="11"
+                   TextWrapping="Wrap"
+                   Text="Pode actualizar mais tarde em Ajuda → Verificar actualizações…"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+          <Button Content="Mais tarde" Classes="dialog-button" IsCancel="True" Click="OnLater"
+                  ToolTip.Tip="Adiar actualização — disponível em Ajuda → Verificar actualizações"/>
+          <Button Content="Descarregar agora" Classes="dialog-primary" IsDefault="True" Click="OnUpdate"
+                  ToolTip.Tip="Descarregar a nova versão (reinício só após confirmação)"/>
+        </StackPanel>
+      </StackPanel>
+    </Grid>
+  </Border>
+</Window>
