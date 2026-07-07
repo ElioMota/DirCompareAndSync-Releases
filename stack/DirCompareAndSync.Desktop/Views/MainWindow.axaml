@@ -1,0 +1,904 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DirCompareAndSync.Desktop.ViewModels"
+        xmlns:views="using:DirCompareAndSync.Desktop.Views"
+        xmlns:controls="using:DirCompareAndSync.Desktop.Controls"
+        xmlns:helpers="using:DirCompareAndSync.Desktop.Helpers"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        x:Class="DirCompareAndSync.Desktop.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/app-icon.ico"
+        Width="1280" Height="880"
+        MinWidth="1050" MinHeight="680"
+        WindowState="Maximized"
+        Background="{StaticResource BrushBackground}">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.cred-test-ok">
+      <Setter Property="Foreground" Value="#1B7A3D"/>
+      <Setter Property="FontSize" Value="18"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+    <Style Selector="TextBlock.cred-test-fail">
+      <Setter Property="Foreground" Value="#B3261E"/>
+      <Setter Property="FontSize" Value="18"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+    <Style Selector="Border.folder-pair-drop-target">
+      <Setter Property="BorderBrush" Value="{StaticResource BrushPrimary}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="Border.busy-overlay">
+      <Setter Property="Background" Value="#D9EEF4FB"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="ProgressBar.busy-progress">
+      <Setter Property="Height" Value="8"/>
+      <Setter Property="MinWidth" Value="260"/>
+      <Setter Property="MaxWidth" Value="360"/>
+      <Setter Property="Foreground" Value="{StaticResource BrushPrimary}"/>
+    </Style>
+  </Window.Styles>
+
+  <DockPanel>
+    <!-- Menu claro e legível -->
+    <Menu DockPanel.Dock="Top" Background="{StaticResource BrushSurface}">
+      <MenuItem Header="_Ficheiro" ToolTip.Tip="Abrir, guardar e exportar configurações">
+        <MenuItem Header="_Novo projeto" Command="{Binding NewProjectCommand}" ToolTip.Tip="Limpar formulário e iniciar configuração nova"/>
+        <MenuItem Header="_Abrir configuração" Command="{Binding LoadSessionCommand}" ToolTip.Tip="Carregar uma configuração guardada da lista"/>
+        <MenuItem Header="_Guardar configuração" Command="{Binding SaveConfigurationCommand}" ToolTip.Tip="Gravar alterações na configuração actual"/>
+        <MenuItem Header="Guardar _como..." Command="{Binding SaveConfigurationAsCommand}" ToolTip.Tip="Gravar com nome novo na lista de configurações"/>
+        <Separator/>
+        <MenuItem Header="Exportar sessões…" Command="{Binding ExportAllSessionsCommand}" ToolTip.Tip="Exportar todas as configurações para ficheiro .dcs"/>
+        <MenuItem Header="Importar (combinar)…" Command="{Binding ImportSessionsMergeCommand}" ToolTip.Tip="Importar .dcs ou .ffs_gui e juntar à lista existente"/>
+        <MenuItem Header="Importar (substituir)…" Command="{Binding ImportSessionsReplaceCommand}" ToolTip.Tip="Importar .dcs ou .ffs_gui e substituir a lista actual"/>
+        <Separator/>
+        <MenuItem Header="_Sair" Command="{Binding ExitAppCommand}" ToolTip.Tip="Fechar a aplicação"/>
+      </MenuItem>
+      <MenuItem Header="_Editar" ToolTip.Tip="Editar pares de pastas e resultados">
+        <MenuItem Header="Adicionar par de pastas" Command="{Binding AddFolderPairCommand}" ToolTip.Tip="Adicionar mais um par origem/destino"/>
+        <MenuItem Header="Limpar resultados" Command="{Binding ClearResultsCommand}" ToolTip.Tip="Limpar a grelha de comparação"/>
+      </MenuItem>
+      <MenuItem Header="_Ações" ToolTip.Tip="Comparar, sincronizar e pré-visualizar">
+        <MenuItem Header="_Comparar" Command="{Binding CompareCommand}" InputGesture="F5" ToolTip.Tip="Analisar diferenças entre as pastas (F5)"/>
+        <MenuItem Header="_Sincronizar" Command="{Binding ExecuteSyncCommand}" InputGesture="F6" ToolTip.Tip="Executar sincronização conforme o modo escolhido (F6)"/>
+        <MenuItem Header="Pré-visualizar" Command="{Binding PreviewSyncCommand}" ToolTip.Tip="Ver resumo das acções antes de sincronizar"/>
+        <MenuItem Header="Cancelar" Command="{Binding CancelOperationCommand}" ToolTip.Tip="Interromper comparação ou sincronização em curso"/>
+      </MenuItem>
+      <MenuItem Header="_Vista" ToolTip.Tip="Filtros da grelha e painéis da interface">
+        <MenuItem Header="Mostrar _tudo" Command="{Binding SetViewFilterCommand}" CommandParameter="All" ToolTip.Tip="Mostrar todos os ficheiros na grelha"/>
+        <MenuItem Header="_Diferenças" Command="{Binding SetViewFilterCommand}" CommandParameter="Differences" ToolTip.Tip="Mostrar só ficheiros diferentes"/>
+        <MenuItem Header="_Conflitos" Command="{Binding SetViewFilterCommand}" CommandParameter="Conflicts" ToolTip.Tip="Mostrar só conflitos"/>
+        <MenuItem Header="Painel de _configuração" ToggleType="CheckBox" IsChecked="{Binding IsSidebarExpanded}" ToolTip.Tip="Mostrar ou ocultar a lista de configurações guardadas"/>
+        <MenuItem Header="Painel de log" ToggleType="CheckBox" IsChecked="{Binding ShowLogPanel}" ToolTip.Tip="Mostrar ou ocultar o painel de log"/>
+      </MenuItem>
+      <MenuItem Header="_Ferramentas" ToolTip.Tip="Definições, filtros, e-mail e agendamentos">
+        <MenuItem Header="Definições de _comparação" Command="{Binding ShowCompareSettingsCommand}" ToolTip.Tip="Método de comparação (hash ou data+tamanho)"/>
+        <MenuItem Header="_Filtros de ficheiros…" Command="{Binding ShowFiltersCommand}" ToolTip.Tip="Padrões de inclusão e exclusão de ficheiros"/>
+        <Separator/>
+        <MenuItem Header="Servidor de _e-mail…" Command="{Binding ShowEmailSettingsCommand}" ToolTip.Tip="Configurar SMTP para notificações"/>
+        <Separator/>
+        <MenuItem Header="_Agendamentos…" Command="{Binding ShowSchedulesCommand}" ToolTip.Tip="Gerir tarefas planeadas de comparação/sincronização"/>
+      </MenuItem>
+      <MenuItem Header="_Ajuda" ToolTip.Tip="Manual, actualizações e informação da versão">
+        <MenuItem Header="Manual" Command="{Binding ShowHelpCommand}" ToolTip.Tip="Resumo do fluxo de trabalho na barra de log"/>
+        <MenuItem Header="{Binding CheckForUpdatesMenuHeader}" Command="{Binding CheckForUpdatesCommand}" ToolTip.Tip="Verificar e instalar actualizações via GitHub Releases"/>
+        <MenuItem Header="Novidades desta _versão…" Command="{Binding ShowReleaseNotesCommand}" ToolTip.Tip="Principais alterações da versão instalada (Alt+V)"/>
+        <MenuItem Header="_Sobre" Command="{Binding ShowAboutCommand}" ToolTip.Tip="Versão, licença gratuita e requisitos do sistema"/>
+      </MenuItem>
+    </Menu>
+
+    <!-- Barra de estado inferior (texto escuro em fundo claro) -->
+    <Border DockPanel.Dock="Bottom" Classes="status-bar">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Orientation="Horizontal" Spacing="20">
+          <TextBlock Text="{Binding FilesAnalyzed, StringFormat=Analisados: {0}}"/>
+          <TextBlock Text="{Binding EqualCount, StringFormat=Iguais: {0}}"/>
+          <TextBlock Text="{Binding DifferentCount, StringFormat=Diferentes: {0}}"/>
+          <TextBlock Text="{Binding ConflictCount, StringFormat=Conflitos: {0}}"/>
+          <TextBlock Text="{Binding ToCopyCount, StringFormat=A copiar: {0}}"/>
+          <TextBlock FontWeight="SemiBold" Foreground="{StaticResource BrushPrimaryDark}" Text="{Binding StatsBarText}"/>
+        </StackPanel>
+        <TextBlock Grid.Column="1" Classes="muted" VerticalAlignment="Center" Text="{Binding StatusText}"/>
+      </Grid>
+    </Border>
+
+    <!-- Corpo: colunas independentes (estatísticas e log com splitters verticais separados) -->
+    <Grid x:Name="MainLayoutGrid" Margin="0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="{Binding EffectiveSidebarWidth, Converter={x:Static helpers:GridLengthConverters.DoubleToGridLength}}"
+                          MinWidth="32" MaxWidth="520"/>
+        <ColumnDefinition Width="5"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Coluna esquerda: configuração + resumo -->
+      <Grid x:Name="SidebarColumnGrid" Grid.Column="0">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="{Binding ConfigPanelRowHeight}"/>
+          <RowDefinition Height="{Binding StatsSplitterRowHeight, Converter={x:Static helpers:GridLengthConverters.DoubleToGridLength}}"/>
+          <RowDefinition Height="{Binding SummaryPanelRowHeight}" MinHeight="72"/>
+        </Grid.RowDefinitions>
+
+    <!-- Sidebar — configurações -->
+      <Border Grid.Row="0"
+              Classes="sidebar"
+              Padding="0">
+            <Grid Margin="8,8,14,8"
+                RowDefinitions="Auto,Auto,Auto,*,Auto"
+                IsVisible="{Binding IsSidebarExpanded}">
+            <TextBlock Grid.Row="0" Classes="section-title" Text="Configuração" Margin="0,4,0,8"/>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
+              <Button Classes="toolbar-icon toolbar-icon-lg" ToolTip.Tip="Novo projeto — limpar formulário" Command="{Binding NewProjectCommand}">
+                <PathIcon Classes="toolbar-icon-glyph-plus toolbar-icon-glyph-2x" Data="{StaticResource ToolbarPlusPath}"/>
+              </Button>
+              <Button Classes="toolbar-icon toolbar-icon-lg" ToolTip.Tip="Importar configuração (.dcs, .ffs_gui)" Command="{Binding ImportSessionsMergeCommand}">
+                <PathIcon Classes="toolbar-icon-glyph-import toolbar-icon-glyph-2x" Data="{StaticResource ToolbarImportPath}"/>
+              </Button>
+              <Button Classes="toolbar-icon toolbar-icon-lg" ToolTip.Tip="Guardar configuração actual" Command="{Binding SaveSessionCommand}">
+                <PathIcon Classes="toolbar-icon-glyph-save toolbar-icon-glyph-2x" Data="{StaticResource ToolbarSavePath}"/>
+              </Button>
+            </StackPanel>
+
+            <TextBox Grid.Row="2"
+                     Classes="config-name-input"
+                     Text="{Binding SessionName}"
+                     PlaceholderText="Nome da configuração"
+                     Margin="0,0,0,8"
+                     ToolTip.Tip="Nome da configuração actual (editável antes de guardar ou use Renomear na lista)"/>
+
+            <ListBox Grid.Row="3"
+                     Classes="config-session-list"
+                     MaxHeight="356"
+                     VerticalAlignment="Top"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     ItemsSource="{Binding SavedSessions}"
+                     SelectedItem="{Binding SelectedSession}"
+                     DoubleTapped="OnSessionDoubleTapped">
+              <ListBox.KeyBindings>
+                <KeyBinding Gesture="Delete"
+                            Command="{Binding DeleteSessionCommand}"
+                            CommandParameter="{Binding SelectedSession}"/>
+                <KeyBinding Gesture="F2"
+                            Command="{Binding RenameSessionCommand}"
+                            CommandParameter="{Binding SelectedSession}"/>
+              </ListBox.KeyBindings>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:SessionItemViewModel">
+                  <controls:SessionListItem DeleteCommand="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteSessionCommand}"
+                                            RenameCommand="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RenameSessionCommand}"/>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+            <TextBlock Grid.Row="4"
+                       Classes="muted"
+                       FontSize="10"
+                       Text="Clique direito ou F2 para renomear; passe o rato para eliminar (Delete)"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Margin="0,8,0,4"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Bottom"/>
+          </Grid>
+      </Border>
+
+      <Button Grid.Row="0"
+              Grid.RowSpan="3"
+              ZIndex="1"
+              Classes="sidebar-toggle"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Center"
+              Command="{Binding ToggleSidebarCommand}"
+              ToolTip.Tip="{Binding SidebarToggleToolTip}">
+        <Grid VerticalAlignment="Center"
+              HorizontalAlignment="Center">
+          <Viewbox Classes="sidebar-toggle-arrow"
+                   IsVisible="{Binding IsSidebarExpanded}">
+            <Path Classes="session-swipe-arrow-wide"
+                  Data="{StaticResource SessionSwipeArrowLeftWidePath}"/>
+          </Viewbox>
+          <Viewbox Classes="sidebar-toggle-arrow"
+                   IsVisible="{Binding IsSidebarExpanded, Converter={x:Static BoolConverters.Not}}">
+            <Path Classes="session-swipe-arrow-wide"
+                  Data="{StaticResource SessionSwipeArrowLeftWidePath}"
+                  RenderTransformOrigin="50%,50%">
+              <Path.RenderTransform>
+                <ScaleTransform ScaleX="-1"/>
+              </Path.RenderTransform>
+            </Path>
+          </Viewbox>
+        </Grid>
+      </Button>
+
+      <GridSplitter x:Name="StatsSplitter"
+                    Grid.Row="1"
+                    Classes="grid-splitter-horizontal"
+                    ResizeDirection="Rows"
+                    IsVisible="{Binding IsSidebarExpanded}"
+                    ShowsPreview="False"
+                    ToolTip.Tip="Arrastar para redimensionar o painel de resumo"/>
+
+    <!-- Estatísticas — coluna esquerda, faixa inferior -->
+    <Border Grid.Row="2"
+            Classes="sidebar sync-summary-panel sync-summary-panel-sidebar"
+            Margin="0,0,0,4"
+            Padding="8,6"
+            ClipToBounds="True"
+            IsVisible="{Binding IsSidebarExpanded}">
+      <DockPanel Grid.IsSharedSizeScope="True" LastChildFill="True">
+        <TextBlock DockPanel.Dock="Top"
+                   Classes="section-title"
+                   Text="Resumo"
+                   FontSize="11"
+                   Margin="0,0,0,4"/>
+        <TextBlock DockPanel.Dock="Top"
+                   Classes="muted"
+                   FontSize="9"
+                   Text="Execute Comparar para ver o resumo."
+                   IsVisible="{Binding !HasSyncSummary}"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,4"/>
+        <Grid DockPanel.Dock="Top"
+              ColumnDefinitions="*,*,*,*,*"
+              Margin="0,0,0,4"
+              IsVisible="{Binding HasSyncSummary}">
+          <Border Grid.Column="0" Classes="sync-summary-hit"
+                  ToolTip.Tip="{Binding SummaryEstimateCopyToLeft, StringFormat=Tempo estimado: {0}}">
+            <StackPanel Classes="sync-summary-stat">
+              <PathIcon Classes="sync-summary-icon sync-summary-icon-rtl" Data="{StaticResource SyncArrowLeftPath}"/>
+              <TextBlock Classes="sync-summary-count" Text="{Binding SummaryCopyToLeft}"/>
+              <TextBlock Classes="sync-summary-estimate muted" FontSize="9"
+                         IsVisible="{Binding HasSummaryEstimates}"
+                         Text="{Binding SummaryEstimateCopyToLeft}"/>
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="1" Classes="sync-summary-hit"
+                  ToolTip.Tip="{Binding SummaryEstimateCopyToRight, StringFormat=Tempo estimado: {0}}">
+            <StackPanel Classes="sync-summary-stat">
+              <PathIcon Classes="sync-summary-icon sync-summary-icon-ltr" Data="{StaticResource SyncArrowRightPath}"/>
+              <TextBlock Classes="sync-summary-count sync-summary-count-ltr" Text="{Binding SummaryCopyToRight}"/>
+              <TextBlock Classes="sync-summary-estimate muted" FontSize="9"
+                         IsVisible="{Binding HasSummaryEstimates}"
+                         Text="{Binding SummaryEstimateCopyToRight}"/>
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="2" Classes="sync-summary-hit"
+                  ToolTip.Tip="{Binding SummaryEstimateDeleteFiles, StringFormat=Tempo estimado: {0}}">
+            <StackPanel Classes="sync-summary-stat">
+              <TextBlock Classes="sync-summary-symbol sync-summary-symbol-delete" Text="×" FontSize="13" HorizontalAlignment="Center"/>
+              <TextBlock Classes="sync-summary-count" Text="{Binding SummaryDeleteFiles}"/>
+              <TextBlock Classes="sync-summary-estimate muted" FontSize="9"
+                         IsVisible="{Binding HasSummaryEstimates}"
+                         Text="{Binding SummaryEstimateDeleteFiles}"/>
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="3" Classes="sync-summary-hit"
+                  ToolTip.Tip="{Binding SummaryEstimateDeleteFolders, StringFormat=Tempo estimado: {0}}">
+            <StackPanel Classes="sync-summary-stat">
+              <TextBlock Classes="sync-summary-symbol sync-summary-symbol-folder" Text="📁" FontSize="10" HorizontalAlignment="Center"/>
+              <TextBlock Classes="sync-summary-count" Text="{Binding SummaryDeleteFolders}"/>
+              <TextBlock Classes="sync-summary-estimate muted" FontSize="9"
+                         IsVisible="{Binding HasSummaryEstimates}"
+                         Text="{Binding SummaryEstimateDeleteFolders}"/>
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="4" Classes="sync-summary-hit"
+                  ToolTip.Tip="Conflitos requerem decisão manual">
+            <StackPanel Classes="sync-summary-stat">
+              <TextBlock Classes="sync-summary-symbol sync-summary-symbol-conflict" Text="⚠" FontSize="12" HorizontalAlignment="Center"/>
+              <TextBlock Classes="sync-summary-count" Text="{Binding SummaryConflicts}"/>
+              <TextBlock Classes="sync-summary-estimate muted" FontSize="9"
+                         IsVisible="{Binding SummaryConflicts}"
+                         Text="{Binding SummaryEstimateConflicts}"/>
+            </StackPanel>
+          </Border>
+        </Grid>
+        <TextBlock DockPanel.Dock="Top"
+                   Classes="sync-summary-total"
+                   Margin="0,0,0,2"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding HasSyncSummary}"
+                   Text="{Binding SummaryTotalSize, StringFormat=Total a transferir: {0}}"/>
+        <TextBlock DockPanel.Dock="Top"
+                   Classes="sync-summary-total muted"
+                   FontSize="11"
+                   Margin="0,0,0,6"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding HasSummaryEstimates}"
+                   Text="{Binding SummaryEstimatedTotal, StringFormat=Tempo estimado (sync): {0}}"/>
+        <Border DockPanel.Dock="Top"
+                Height="1"
+                Background="{StaticResource BrushBorder}"
+                Margin="0,0,0,6"
+                IsVisible="{Binding HasSyncSummary}"/>
+        <DockPanel DockPanel.Dock="Top"
+                   Margin="16,0,0,2"
+                   LastChildFill="True"
+                   IsVisible="{Binding HasSyncSummary}">
+          <Button DockPanel.Dock="Right"
+                  Classes="summary-tree-sort-header summary-tree-size-col"
+                  HorizontalContentAlignment="Right"
+                  Command="{Binding SortSummaryFoldersCommand}"
+                  CommandParameter="Size"
+                  ToolTip.Tip="Ordenar por tamanho">
+            <TextBlock Classes="summary-tree-header summary-tree-metric-header"
+                       Text="{Binding SummarySortSizeIndicator, StringFormat=Tam.{0}}"/>
+          </Button>
+          <Button DockPanel.Dock="Right"
+                  Classes="summary-tree-sort-header summary-tree-items-col"
+                  HorizontalContentAlignment="Right"
+                  Command="{Binding SortSummaryFoldersCommand}"
+                  CommandParameter="ItemCount"
+                  ToolTip.Tip="Ordenar por número de itens">
+            <TextBlock Classes="summary-tree-header summary-tree-metric-header"
+                       Text="{Binding SummarySortItemsIndicator, StringFormat=Itens{0}}"/>
+          </Button>
+          <Button Classes="summary-tree-sort-header"
+                  HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Left"
+                  Command="{Binding SortSummaryFoldersCommand}"
+                  CommandParameter="Name"
+                  ToolTip.Tip="Ordenar por pasta">
+            <TextBlock Classes="summary-tree-header" Text="{Binding SummarySortNameIndicator, StringFormat=Pasta{0}}"/>
+          </Button>
+        </DockPanel>
+        <TreeView Classes="summary-tree"
+                  IsVisible="{Binding HasSyncSummary}"
+                  ItemsSource="{Binding SummaryFolderNodes}">
+          <TreeView.ItemTemplate>
+            <TreeDataTemplate ItemsSource="{Binding Children}" x:DataType="vm:SyncSummaryFolderNodeViewModel">
+              <DockPanel Margin="0,1" LastChildFill="True" ToolTip.Tip="{Binding FullPath}">
+                <TextBlock DockPanel.Dock="Right"
+                           Text="{Binding SizeText}"
+                           Classes="summary-tree-metric summary-tree-size-col"/>
+                <TextBlock DockPanel.Dock="Right"
+                           Text="{Binding ItemCount}"
+                           Classes="summary-tree-metric summary-tree-items-col"/>
+                <Grid ColumnDefinitions="40,*" Margin="0,0,6,0">
+                  <Border Grid.Column="0" Classes="summary-bar-track" Width="38" Height="14" VerticalAlignment="Center">
+                    <Grid>
+                      <Border Classes="summary-bar-fill" Width="{Binding BarWidth}" HorizontalAlignment="Left"/>
+                      <TextBlock Classes="summary-bar-label" Text="{Binding PercentText}"/>
+                    </Grid>
+                  </Border>
+                  <TextBlock Grid.Column="1"
+                             Text="{Binding Name}"
+                             FontSize="10"
+                             TextTrimming="CharacterEllipsis"
+                             VerticalAlignment="Center"
+                             Margin="4,0,0,0"/>
+                </Grid>
+              </DockPanel>
+            </TreeDataTemplate>
+          </TreeView.ItemTemplate>
+        </TreeView>
+      </DockPanel>
+    </Border>
+
+      </Grid>
+
+      <GridSplitter x:Name="SidebarSplitter"
+                    Grid.Column="1"
+                    Classes="grid-splitter"
+                    ResizeDirection="Columns"
+                    IsVisible="{Binding IsSidebarExpanded}"
+                    ToolTip.Tip="Arrastar para redimensionar o painel de configuração"/>
+
+      <!-- Coluna principal: conteúdo + log -->
+      <Grid x:Name="MainColumnGrid" Grid.Column="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="{Binding LogSplitterRowHeight, Converter={x:Static helpers:GridLengthConverters.DoubleToGridLength}}"/>
+          <RowDefinition Height="{Binding EffectiveLogPanelHeight, Converter={x:Static helpers:GridLengthConverters.DoubleToGridLength}}"
+                         MinHeight="0" MaxHeight="480"/>
+        </Grid.RowDefinitions>
+
+      <Grid x:Name="RootLayoutGrid" Grid.Row="0"
+            RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="6,6,6,6">
+
+        <!-- Botões Comparar / Sincronizar + configuração -->
+        <Border Grid.Row="0" Classes="panel" Padding="8,6" Margin="0,0,0,4">
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalAlignment="Top">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8"
+                        VerticalAlignment="Top">
+              <Button Classes="action-compare" Command="{Binding CompareCommand}"
+                      IsEnabled="{Binding !IsBusy}" VerticalAlignment="Top"
+                      ToolTip.Tip="Analisar diferenças entre as pastas (F5)">
+                <Panel>
+                  <TextBlock Text="🔍  Comparar" IsVisible="{Binding !IsBusy}"/>
+                  <TextBlock Text="⏳  A processar…" IsVisible="{Binding IsBusy}"/>
+                </Panel>
+              </Button>
+              <Button Classes="action-toolbar" Content="⚙ Comparação" Command="{Binding ShowCompareSettingsCommand}" VerticalAlignment="Top"
+                      ToolTip.Tip="Definições de comparação (hash ou data+tamanho)"/>
+              <Border Width="1" Background="{StaticResource BrushBorder}" Margin="2,4" Height="26" VerticalAlignment="Top"/>
+              <Grid VerticalAlignment="Top" RowDefinitions="Auto,Auto" RowSpacing="4">
+                <Grid Grid.Row="0" ColumnDefinitions="*,*" ColumnSpacing="8">
+                  <Button Grid.Column="0" Classes="action-sync" Content="⟳  Sincronizar"
+                          Command="{Binding ExecuteSyncCommand}"
+                          HorizontalAlignment="Stretch"
+                          ToolTip.Tip="Executar sincronização conforme o modo escolhido (F6)"/>
+                  <Button Grid.Column="1" Classes="action-toolbar" Content="Pré-visualizar"
+                          Command="{Binding PreviewSyncCommand}"
+                          HorizontalAlignment="Stretch"
+                          ToolTip.Tip="Ver resumo das acções antes de sincronizar"/>
+                </Grid>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6"
+                            HorizontalAlignment="Right" VerticalAlignment="Center">
+                  <TextBlock VerticalAlignment="Center" FontSize="10" Classes="muted"
+                             Text="Cópias em paralelo"
+                             ToolTip.Tip="{Binding SyncSettings.ParallelCopiesHint}"/>
+                  <ComboBox Width="52" MinWidth="52" Classes="compact" VerticalAlignment="Center"
+                            ItemsSource="{Binding SyncSettings.ParallelCopiesOptions}"
+                            SelectedItem="{Binding SyncSettings.SelectedParallelCopies}"
+                            ToolTip.Tip="{Binding SyncSettings.ParallelCopiesHint}"/>
+                </StackPanel>
+              </Grid>
+              <Border Width="1" Background="{StaticResource BrushBorder}" Margin="2,4" Height="26" VerticalAlignment="Top"/>
+              <Button Classes="action-toolbar" Command="{Binding ShowSchedulesCommand}" VerticalAlignment="Top"
+                      ToolTip.Tip="Agendar comparação e sincronização automática">
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                  <PathIcon Classes="toolbar-icon-glyph-schedule" Data="{StaticResource ToolbarSchedulePath}"/>
+                  <TextBlock Text="Agendar" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Button>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
+                        HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Border Padding="6,5"
+                    VerticalAlignment="Top"
+                    Background="{StaticResource BrushSurface}"
+                    BorderBrush="{StaticResource BrushBorder}"
+                    BorderThickness="1"
+                    CornerRadius="5">
+              <StackPanel Spacing="6">
+                <TextBlock FontWeight="SemiBold" FontSize="12" Text="Modo de sincronização"/>
+                <ComboBox MinWidth="0"
+                          HorizontalAlignment="Left"
+                          ItemsSource="{Binding SyncSettings.SyncModes}"
+                          SelectedItem="{Binding SyncSettings.SelectedMode}"
+                          ToolTip.Tip="Modo de sincronização: bidirecional, espelho, actualizar, etc.">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Converter={StaticResource SyncModeLabel}}"/>
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Border HorizontalAlignment="Left"
+                        Background="{StaticResource BrushPrimaryLight}"
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="6,5">
+                  <TextBlock Text="{Binding SyncSettings.ModeDescription}"
+                             TextWrapping="NoWrap" FontSize="11" Classes="muted"/>
+                </Border>
+              </StackPanel>
+            </Border>
+
+            <Border Padding="6,5"
+                    VerticalAlignment="Top"
+                    Background="{StaticResource BrushSurface}"
+                    BorderBrush="{StaticResource BrushBorder}"
+                    BorderThickness="1"
+                    CornerRadius="5">
+              <StackPanel Spacing="6">
+                <TextBlock FontWeight="SemiBold" FontSize="12" Text="Notificação por e-mail"/>
+                <ComboBox MinWidth="0"
+                          HorizontalAlignment="Left"
+                          ItemsSource="{Binding SyncSettings.EmailNotificationModes}"
+                          SelectedItem="{Binding SyncSettings.SelectedEmailNotification}"
+                          ToolTip.Tip="Quando enviar e-mail após sincronização manual ou agendada">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Converter={StaticResource JobEmailNotificationLabel}}"/>
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Border HorizontalAlignment="Left"
+                        Background="{StaticResource BrushPrimaryLight}"
+                        BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="6,5">
+                  <TextBlock Text="{Binding SyncSettings.EmailNotificationDescription}"
+                             TextWrapping="NoWrap" FontSize="11" Classes="muted"/>
+                </Border>
+              </StackPanel>
+            </Border>
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <!-- Pares de pastas -->
+        <Border Grid.Row="1" Classes="panel" Padding="6,5" Margin="0,0,0,4">
+          <Grid RowDefinitions="Auto,*">
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="0,0,0,4">
+              <TextBlock Classes="section-title" Text="Pastas" VerticalAlignment="Center"
+                         ToolTip.Tip="Todos os pares listados são comparados e sincronizados em conjunto."/>
+              <Button Grid.Column="1" Content="+ Adicionar par" Command="{Binding AddFolderPairCommand}"
+                      Classes="action-secondary" HorizontalAlignment="Right"
+                      ToolTip.Tip="Adicionar mais um par de pastas à comparação"/>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1" MaxHeight="190"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding FolderPairs}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:FolderPairViewModel">
+                  <Border Margin="0,0,0,1" Padding="2,1" Classes="panel folder-pair-row folder-pair-drop-row" HorizontalAlignment="Stretch"
+                          helpers:FolderPairListReorder.IsDropTarget="True">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" HorizontalAlignment="Stretch">
+                      <Grid Grid.Row="0"
+                            ColumnDefinitions="18,20,92,*,Auto,32,92,*,Auto,30"
+                            Margin="0,0,0,0"
+                            HorizontalAlignment="Stretch">
+                        <Border Grid.Column="0" Classes="drag-handle"
+                                helpers:FolderPairListReorder.IsDragHandle="True"
+                                ToolTip.Tip="Arrastar para reordenar"
+                                VerticalAlignment="Center" HorizontalAlignment="Center">
+                          <TextBlock Text="⠿"/>
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="10" Classes="muted"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <ComboBox Grid.Column="2" MinWidth="92"
+                                  ItemsSource="{x:Static vm:FolderPairViewModel.StorageTypeOptions}"
+                                  SelectedItem="{Binding LeftStorageType}" Classes="compact" Margin="2,0,0,0"
+                                  FontSize="12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                  ToolTip.Tip="Tipo de armazenamento do lado esquerdo (local, FTP, MEGA, Google Drive, UNC)"/>
+                        <TextBox Grid.Column="3" Classes="compact" Margin="3,0,0,0"
+                                 HorizontalAlignment="Stretch"
+                                 Text="{Binding LeftPath, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="Caminho (local ou /pasta remota)"/>
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" Margin="4,0,0,0"
+                                    IsVisible="{Binding LeftIsLocal}" VerticalAlignment="Center">
+                          <Button Content="Procurar" Classes="action-compact"
+                                  ToolTip.Tip="Escolher pasta local no disco"
+                                  Command="{Binding $parent[Window].DataContext.BrowseLeftForPairCommand}"
+                                  CommandParameter="{Binding}"/>
+                          <Button Classes="toolbar-icon" Content="🔑"
+                                  IsVisible="{Binding LeftIsUnc}"
+                                  ToolTip.Tip="Credênciais"
+                                  Command="{Binding $parent[Window].DataContext.ToggleLeftUncCredentialsCommand}"
+                                  CommandParameter="{Binding}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" Margin="4,0,0,0"
+                                    IsVisible="{Binding LeftIsRemote}" VerticalAlignment="Center">
+                          <Button Content="Testar" Classes="action-compact"
+                                  ToolTip.Tip="Testar ligação remota (FTP/MEGA/Google), máx. 15 s"
+                                  IsEnabled="{Binding !$parent[Window].DataContext.IsTestingRemote}"
+                                  Command="{Binding $parent[Window].DataContext.TestLeftRemoteCommand}"
+                                  CommandParameter="{Binding}"/>
+                          <TextBlock Text="✓" Classes="cred-test-ok" IsVisible="{Binding ShowLeftRemoteTestPassed}"/>
+                          <TextBlock Text="☹" Classes="cred-test-fail" IsVisible="{Binding ShowLeftRemoteTestFailed}"/>
+                        </StackPanel>
+                        <Button Grid.Column="5" Classes="swap-paths" Content="↔"
+                                ToolTip.Tip="Trocar origem com destino"
+                                Command="{Binding $parent[Window].DataContext.SwapFolderPairPathsCommand}"
+                                CommandParameter="{Binding}"/>
+                        <ComboBox Grid.Column="6" MinWidth="92"
+                                  ItemsSource="{x:Static vm:FolderPairViewModel.StorageTypeOptions}"
+                                  SelectedItem="{Binding RightStorageType}" Classes="compact"
+                                  FontSize="12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                  ToolTip.Tip="Tipo de armazenamento do lado direito (local, FTP, MEGA, Google Drive, UNC)"/>
+                        <TextBox Grid.Column="7" Classes="compact" Margin="3,0,0,0"
+                                 HorizontalAlignment="Stretch"
+                                 Text="{Binding RightPath, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="Caminho (local ou /pasta remota)"/>
+                        <StackPanel Grid.Column="8" Orientation="Horizontal" Spacing="4" Margin="4,0,0,0"
+                                    IsVisible="{Binding RightIsLocal}" VerticalAlignment="Center">
+                          <Button Content="Procurar" Classes="action-compact"
+                                  ToolTip.Tip="Escolher pasta local no disco"
+                                  Command="{Binding $parent[Window].DataContext.BrowseRightForPairCommand}"
+                                  CommandParameter="{Binding}"/>
+                          <Button Classes="toolbar-icon" Content="🔑"
+                                  IsVisible="{Binding RightIsUnc}"
+                                  ToolTip.Tip="Credênciais"
+                                  Command="{Binding $parent[Window].DataContext.ToggleRightUncCredentialsCommand}"
+                                  CommandParameter="{Binding}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="8" Orientation="Horizontal" Spacing="4" Margin="4,0,0,0"
+                                    IsVisible="{Binding RightIsRemote}" VerticalAlignment="Center">
+                          <Button Content="Testar" Classes="action-compact"
+                                  ToolTip.Tip="Testar ligação remota (FTP/MEGA/Google), máx. 15 s"
+                                  IsEnabled="{Binding !$parent[Window].DataContext.IsTestingRemote}"
+                                  Command="{Binding $parent[Window].DataContext.TestRightRemoteCommand}"
+                                  CommandParameter="{Binding}"/>
+                          <TextBlock Text="✓" Classes="cred-test-ok" IsVisible="{Binding ShowRightRemoteTestPassed}"/>
+                          <TextBlock Text="☹" Classes="cred-test-fail" IsVisible="{Binding ShowRightRemoteTestFailed}"/>
+                        </StackPanel>
+                        <Button Grid.Column="9" Content="✕" Classes="action-compact" Margin="4,0,0,0"
+                                ToolTip.Tip="Remover este par"
+                                IsVisible="{Binding $parent[Window].DataContext.CanRemoveFolderPairs}"
+                                Command="{Binding $parent[Window].DataContext.RemoveFolderPairCommand}"
+                                CommandParameter="{Binding}"/>
+                      </Grid>
+
+                      <Grid Grid.Row="1" IsVisible="{Binding LeftIsFtp}"
+                            ColumnDefinitions="Auto,*,52,*,*,Auto,Auto"
+                            Margin="130,0,38,1" HorizontalAlignment="Stretch">
+                        <TextBlock Grid.Column="0" Classes="muted" FontSize="10" Text="FTP esq.:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBox Grid.Column="1" Classes="compact" PlaceholderText="Servidor" Text="{Binding LeftFtpHost}"
+                                 HorizontalAlignment="Stretch"/>
+                        <TextBox Grid.Column="2" Classes="compact" PlaceholderText="Porta" Text="{Binding LeftFtpPort}" Margin="6,0,0,0"/>
+                        <TextBox Grid.Column="3" Classes="compact" PlaceholderText="Utilizador" Text="{Binding LeftFtpUser}" Margin="6,0,0,0"
+                                 HorizontalAlignment="Stretch"/>
+                        <controls:PasswordField Grid.Column="4" BoxClasses="compact" PlaceholderText="Palavra-passe"
+                                                Text="{Binding LeftFtpPassword}" Margin="6,0,0,0"/>
+                        <CheckBox Grid.Column="5" Content="FTPS" IsChecked="{Binding LeftFtpUseTls}" FontSize="10" Margin="8,0,0,0"/>
+                        <CheckBox Grid.Column="6" Content="Passivo" IsChecked="{Binding LeftFtpPassiveMode}" FontSize="10" Margin="4,0,0,0"/>
+                      </Grid>
+
+                      <Grid Grid.Row="2" IsVisible="{Binding RightIsFtp}"
+                            ColumnDefinitions="Auto,*,52,*,*,Auto,Auto"
+                            Margin="130,0,38,0" HorizontalAlignment="Stretch">
+                        <TextBlock Grid.Column="0" Classes="muted" FontSize="10" Text="FTP dir.:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBox Grid.Column="1" Classes="compact" PlaceholderText="Servidor" Text="{Binding RightFtpHost}"
+                                 HorizontalAlignment="Stretch"/>
+                        <TextBox Grid.Column="2" Classes="compact" PlaceholderText="Porta" Text="{Binding RightFtpPort}" Margin="6,0,0,0"/>
+                        <TextBox Grid.Column="3" Classes="compact" PlaceholderText="Utilizador" Text="{Binding RightFtpUser}" Margin="6,0,0,0"
+                                 HorizontalAlignment="Stretch"/>
+                        <controls:PasswordField Grid.Column="4" BoxClasses="compact" PlaceholderText="Palavra-passe"
+                                                Text="{Binding RightFtpPassword}" Margin="6,0,0,0"/>
+                        <CheckBox Grid.Column="5" Content="FTPS" IsChecked="{Binding RightFtpUseTls}" FontSize="10" Margin="8,0,0,0"/>
+                        <CheckBox Grid.Column="6" Content="Passivo" IsChecked="{Binding RightFtpPassiveMode}" FontSize="10" Margin="4,0,0,0"/>
+                      </Grid>
+
+                      <Grid Grid.Row="3" IsVisible="{Binding LeftIsMega}"
+                            ColumnDefinitions="Auto,*,*,Auto"
+                            Margin="130,0,38,1" HorizontalAlignment="Stretch">
+                        <TextBlock Grid.Column="0" Classes="muted" FontSize="10" Text="MEGA esq.:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBox Grid.Column="1" Classes="compact" PlaceholderText="Email" Text="{Binding LeftMegaEmail}"
+                                 HorizontalAlignment="Stretch"/>
+                        <controls:PasswordField Grid.Column="2" BoxClasses="compact" PlaceholderText="Palavra-passe"
+                                                Text="{Binding LeftMegaPassword}" Margin="6,0,0,0"/>
+                      </Grid>
+
+                      <Grid Grid.Row="4" IsVisible="{Binding RightIsMega}"
+                            ColumnDefinitions="Auto,*,*,Auto"
+                            Margin="130,0,38,1" HorizontalAlignment="Stretch">
+                        <TextBlock Grid.Column="0" Classes="muted" FontSize="10" Text="MEGA dir.:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBox Grid.Column="1" Classes="compact" PlaceholderText="Email" Text="{Binding RightMegaEmail}"
+                                 HorizontalAlignment="Stretch"/>
+                        <controls:PasswordField Grid.Column="2" BoxClasses="compact" PlaceholderText="Palavra-passe"
+                                                Text="{Binding RightMegaPassword}" Margin="6,0,0,0"/>
+                      </Grid>
+
+                      <Grid Grid.Row="5" IsVisible="{Binding LeftIsGoogleDrive}"
+                            ColumnDefinitions="Auto,Auto,*,Auto"
+                            Margin="130,0,38,1" HorizontalAlignment="Stretch">
+                        <TextBlock Grid.Column="0" Classes="muted" FontSize="10" Text="Google esq.:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Grid.Column="1" Content="Ligar conta" Classes="action-compact"
+                                ToolTip.Tip="Autenticar conta Google Drive (lado esquerdo)"
+                                Command="{Binding $parent[Window].DataContext.ConnectLeftGoogleCommand}"
+                                CommandParameter="{Binding}"
+                                IsVisible="{Binding !LeftGoogleConnected}"/>
+                        <Button Grid.Column="1" Content="Desligar" Classes="action-compact"
+                                ToolTip.Tip="Remover ligação Google Drive (lado esquerdo)"
+                                Command="{Binding $parent[Window].DataContext.DisconnectLeftGoogleCommand}"
+                                CommandParameter="{Binding}"
+                                IsVisible="{Binding LeftGoogleConnected}"/>
+                        <TextBlock Grid.Column="2" Classes="muted" FontSize="10" VerticalAlignment="Center" Margin="8,0,0,0"
+                                   Text="{Binding LeftGoogleAccount}" TextTrimming="CharacterEllipsis"/>
+                      </Grid>
+
+                      <Grid Grid.Row="6" IsVisible="{Binding RightIsGoogleDrive}"
+                            ColumnDefinitions="Auto,Auto,*,Auto"
+                            Margin="130,0,38,1" HorizontalAlignment="Stretch">
+                        <TextBlock Grid.Column="0" Classes="muted" FontSize="10" Text="Google dir.:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Grid.Column="1" Content="Ligar conta" Classes="action-compact"
+                                ToolTip.Tip="Autenticar conta Google Drive (lado direito)"
+                                Command="{Binding $parent[Window].DataContext.ConnectRightGoogleCommand}"
+                                CommandParameter="{Binding}"
+                                IsVisible="{Binding !RightGoogleConnected}"/>
+                        <Button Grid.Column="1" Content="Desligar" Classes="action-compact"
+                                ToolTip.Tip="Remover ligação Google Drive (lado direito)"
+                                Command="{Binding $parent[Window].DataContext.DisconnectRightGoogleCommand}"
+                                CommandParameter="{Binding}"
+                                IsVisible="{Binding RightGoogleConnected}"/>
+                        <TextBlock Grid.Column="2" Classes="muted" FontSize="10" VerticalAlignment="Center" Margin="8,0,0,0"
+                                   Text="{Binding RightGoogleAccount}" TextTrimming="CharacterEllipsis"/>
+                      </Grid>
+
+                      <Grid Grid.Row="7" IsVisible="{Binding ShowLeftUncCredentials}"
+                            ColumnDefinitions="Auto,*,*,Auto,Auto"
+                            Margin="130,0,38,1" HorizontalAlignment="Stretch">
+                        <TextBlock Grid.Column="0" Classes="muted" FontSize="10" Text="Rede esq.:" VerticalAlignment="Center" Margin="0,0,6,0"
+                                   ToolTip.Tip="Opcional — só se a sessão Windows não tiver acesso à partilha"/>
+                        <TextBox Grid.Column="1" Classes="compact" PlaceholderText="Utilizador (opcional)"
+                                 Text="{Binding LeftUncUser}" HorizontalAlignment="Stretch"/>
+                        <controls:PasswordField Grid.Column="2" BoxClasses="compact" PlaceholderText="Palavra-passe (opcional)"
+                                                Text="{Binding LeftUncPassword}" Margin="6,0,0,0"/>
+                        <Button Grid.Column="3" Content="Testar partilha" Classes="action-compact" Margin="6,0,0,0"
+                                ToolTip.Tip="Testar acesso à partilha de rede UNC (máx. 15 s)"
+                                Command="{Binding $parent[Window].DataContext.TestLeftUncShareCommand}"
+                                CommandParameter="{Binding}"
+                                IsEnabled="{Binding !$parent[Window].DataContext.IsTestingRemote}"/>
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" Margin="6,0,0,0" VerticalAlignment="Center">
+                          <TextBlock Text="✓" Classes="cred-test-ok" IsVisible="{Binding ShowLeftUncTestPassed}"/>
+                          <TextBlock Text="☹" Classes="cred-test-fail" IsVisible="{Binding ShowLeftUncTestFailed}"/>
+                        </StackPanel>
+                      </Grid>
+
+                      <Grid Grid.Row="8" IsVisible="{Binding ShowRightUncCredentials}"
+                            ColumnDefinitions="Auto,*,*,Auto,Auto"
+                            Margin="130,0,38,0" HorizontalAlignment="Stretch">
+                        <TextBlock Grid.Column="0" Classes="muted" FontSize="10" Text="Rede dir.:" VerticalAlignment="Center" Margin="0,0,6,0"
+                                   ToolTip.Tip="Opcional — só se a sessão Windows não tiver acesso à partilha"/>
+                        <TextBox Grid.Column="1" Classes="compact" PlaceholderText="Utilizador (opcional)"
+                                 Text="{Binding RightUncUser}" HorizontalAlignment="Stretch"/>
+                        <controls:PasswordField Grid.Column="2" BoxClasses="compact" PlaceholderText="Palavra-passe (opcional)"
+                                                Text="{Binding RightUncPassword}" Margin="6,0,0,0"/>
+                        <Button Grid.Column="3" Content="Testar partilha" Classes="action-compact" Margin="6,0,0,0"
+                                ToolTip.Tip="Testar acesso à partilha de rede UNC (máx. 15 s)"
+                                Command="{Binding $parent[Window].DataContext.TestRightUncShareCommand}"
+                                CommandParameter="{Binding}"
+                                IsEnabled="{Binding !$parent[Window].DataContext.IsTestingRemote}"/>
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" Margin="6,0,0,0" VerticalAlignment="Center">
+                          <TextBlock Text="✓" Classes="cred-test-ok" IsVisible="{Binding ShowRightUncTestPassed}"/>
+                          <TextBlock Text="☹" Classes="cred-test-fail" IsVisible="{Binding ShowRightUncTestFailed}"/>
+                        </StackPanel>
+                      </Grid>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            </ScrollViewer>
+          </Grid>
+        </Border>
+
+        <!-- Filtros rápidos -->
+        <Border Grid.Row="2" Padding="0,0,0,3">
+          <StackPanel Orientation="Horizontal" Spacing="3">
+            <Button Classes="filter-chip"
+                    Classes.filter-chip-selected="{Binding ActiveViewFilter, Converter={StaticResource EnumEquals}, ConverterParameter=All}"
+                    Content="Todos" Command="{Binding SetViewFilterCommand}" CommandParameter="All"
+                    ToolTip.Tip="Mostrar tudo e marcar todos os ficheiros com acção para sincronizar"/>
+            <Button Classes="filter-chip"
+                    Classes.filter-chip-selected="{Binding ActiveViewFilter, Converter={StaticResource EnumEquals}, ConverterParameter=Differences}"
+                    Content="Diferenças" Command="{Binding SetViewFilterCommand}" CommandParameter="Differences"
+                    ToolTip.Tip="Mostrar diferenças e marcar só esses ficheiros para sincronizar"/>
+            <Button Classes="filter-chip"
+                    Classes.filter-chip-selected="{Binding ActiveViewFilter, Converter={StaticResource EnumEquals}, ConverterParameter=Conflicts}"
+                    Content="Conflitos" Command="{Binding SetViewFilterCommand}" CommandParameter="Conflicts"
+                    ToolTip.Tip="Mostrar conflitos e marcar só esses ficheiros para sincronizar"/>
+            <Button Classes="filter-chip"
+                    Classes.filter-chip-selected="{Binding ActiveViewFilter, Converter={StaticResource EnumEquals}, ConverterParameter=LeftOnly}"
+                    Content="Só esquerda" Command="{Binding SetViewFilterCommand}" CommandParameter="LeftOnly"
+                    ToolTip.Tip="Só no lado esquerdo — marca esses ficheiros para sincronizar"/>
+            <Button Classes="filter-chip"
+                    Classes.filter-chip-selected="{Binding ActiveViewFilter, Converter={StaticResource EnumEquals}, ConverterParameter=RightOnly}"
+                    Content="Só direita" Command="{Binding SetViewFilterCommand}" CommandParameter="RightOnly"
+                    ToolTip.Tip="Só no lado direito — marca esses ficheiros para sincronizar"/>
+            <Button Classes="filter-chip"
+                    Classes.filter-chip-selected="{Binding ActiveViewFilter, Converter={StaticResource EnumEquals}, ConverterParameter=Equal}"
+                    Content="Iguais" Command="{Binding SetViewFilterCommand}" CommandParameter="Equal"
+                    ToolTip.Tip="Mostrar iguais (nenhum marcado para sincronizar)"/>
+            <Button Classes="filter-chip"
+                    Classes.filter-chip-selected="{Binding ActiveViewFilter, Converter={StaticResource EnumEquals}, ConverterParameter=Actions}"
+                    Content="Ações" Command="{Binding SetViewFilterCommand}" CommandParameter="Actions"
+                    ToolTip.Tip="Ficheiros com acção planeado — marca todos para sincronizar"/>
+            <TextBlock VerticalAlignment="Center" Margin="8,0,3,0" Classes="muted" Text="Pesquisar:"/>
+            <TextBox Width="160" Classes="compact" Text="{Binding SearchText}" PlaceholderText="ficheiro…"
+                     ToolTip.Tip="Filtrar e marcar só os ficheiros que coincidem com a pesquisa"/>
+            <TextBlock VerticalAlignment="Center" Margin="6,0,3,0" Classes="muted" Text="Scan:"/>
+            <TextBlock VerticalAlignment="Center" MinWidth="90" FontSize="12" Text="{Binding FiltersText}" Opacity="0.85"
+                       ToolTip.Tip="Resumo dos filtros de inclusão/exclusão activos"/>
+            <Button Content="Filtros…" Classes="action-compact" Command="{Binding ShowFiltersCommand}" Margin="3,0,0,0"
+                    ToolTip.Tip="Editar padrões de inclusão e exclusão de ficheiros"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Grelha de resultados -->
+        <Border Grid.Row="3" Classes="panel" Padding="0" MinHeight="160">
+          <views:ComparisonResultsView/>
+        </Border>
+
+        <Border Grid.Row="0" Grid.RowSpan="4"
+                Classes="busy-overlay"
+                IsVisible="{Binding IsBusy}"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                ZIndex="200">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14" Margin="24">
+            <ProgressBar Classes="busy-progress"
+                         IsIndeterminate="True"
+                         Minimum="0"
+                         Maximum="100"/>
+            <TextBlock Text="{Binding BusyMessage}"
+                       HorizontalAlignment="Center"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource BrushPrimaryDark}"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"/>
+            <TextBlock Text="Isto pode demorar em pastas de rede ou com muitos ficheiros."
+                       Classes="muted"
+                       FontSize="11"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       MaxWidth="360"/>
+            <Button Content="Cancelar"
+                    Classes="action-secondary"
+                    HorizontalAlignment="Center"
+                    Command="{Binding CancelOperationCommand}"
+                    ToolTip.Tip="Interromper a operação em curso"/>
+          </StackPanel>
+        </Border>
+
+      </Grid>
+
+    <GridSplitter x:Name="LogSplitter"
+                  Grid.Row="1"
+                  Classes="grid-splitter-horizontal"
+                  ResizeDirection="Rows"
+                  IsVisible="{Binding IsLogSplitterVisible}"
+                  ShowsPreview="False"
+                  ToolTip.Tip="Arrastar para redimensionar o painel de log"/>
+
+    <Border Grid.Row="2"
+            Classes="panel log-pane" Margin="0,0,8,4" Padding="4,4"
+            IsVisible="{Binding ShowLogPanel}"
+            ClipToBounds="True">
+      <Grid>
+        <Grid ColumnDefinitions="*,Auto"
+              IsVisible="{Binding !IsLogPanelExpanded}"
+              MinHeight="24">
+          <TextBlock Classes="muted" FontSize="11" Text="Log (recolhido)"
+                     VerticalAlignment="Center" Margin="4,0,0,0"/>
+          <Button Grid.Column="1"
+                  Classes="log-toggle"
+                  Command="{Binding ToggleLogPanelCommand}"
+                  ToolTip.Tip="{Binding LogToggleToolTip}"
+                  Content="{Binding LogToggleGlyph}"/>
+        </Grid>
+
+        <DockPanel IsVisible="{Binding IsLogPanelExpanded}" LastChildFill="True" MinHeight="72">
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="4,2,4,4">
+            <TextBlock Grid.Column="0" Classes="section-title" Text="Log" FontSize="12" VerticalAlignment="Center"/>
+            <Button Grid.Column="1"
+                    Classes="log-clear"
+                    Margin="0,0,4,0"
+                    Command="{Binding ClearVisibleLogCommand}"
+                    ToolTip.Tip="Limpar log (mantém ficheiros em disco)">
+              <PathIcon Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+            </Button>
+            <Button Grid.Column="2"
+                    Classes="log-toggle"
+                    Command="{Binding ToggleLogPanelCommand}"
+                    ToolTip.Tip="{Binding LogToggleToolTip}"
+                    Content="{Binding LogToggleGlyph}"/>
+          </Grid>
+          <ListBox Classes="sync-log-list"
+                   Margin="4,0,4,4"
+                   ItemsSource="{Binding LogLines}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                   ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}"
+                           FontFamily="Consolas,Courier New,monospace"
+                           FontSize="10"
+                           LineHeight="13"
+                           Padding="2,0"
+                           TextWrapping="NoWrap"
+                           TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Grid>
+    </Border>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</Window>
