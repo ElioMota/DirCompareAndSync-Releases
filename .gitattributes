@@ -1,0 +1,19 @@
+# GitHub Linguist — DirCompareAndSync-Releases
+# O repo publico distribui binarios; estas regras fazem a barra "Languages"
+# reflectir as tecnologias reais da aplicacao (ver pasta stack/).
+
+# Pagina GitHub Pages e documentacao do site
+docs/** linguist-documentation
+*.html linguist-documentation
+README.md linguist-documentation
+google*.html linguist-documentation
+
+# Capturas de ecrã
+docs/screenshots/** linguist-generated
+
+# Notas de versao em JSON (nao e codigo)
+release-notes.json linguist-detectable=false
+
+# Interface Avalonia (.axaml)
+stack/**/*.axaml linguist-language=Avalonia
+stack/README.md linguist-documentation
