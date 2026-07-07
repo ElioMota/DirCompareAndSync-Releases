@@ -22,6 +22,20 @@ Inspiração de fluxo: [FreeFileSync](https://freefilesync.org) — com confirma
 
 ---
 
+## Tecnologias
+
+Aplicação **desktop Windows** desenvolvida em:
+
+| | |
+|---|---|
+| ![C#](https://img.shields.io/badge/C%23-.NET%2010-512BD4?style=flat-square) | Lógica da aplicação (`DirCompareAndSync.Core`, `DirCompareAndSync.Desktop`) |
+| ![Avalonia](https://img.shields.io/badge/Avalonia-UI-9B4F96?style=flat-square) | Interface gráfica (ficheiros `.axaml`) |
+| ![PowerShell](https://img.shields.io/badge/PowerShell-deploy-5391FE?style=flat-square) | Build, publicação e upload de releases |
+
+Amostras representativas do código-fonte estão na pasta [`stack/`](stack/) deste repositório (o desenvolvimento completo é privado).
+
+---
+
 ## Funcionalidades
 
 - **Comparar pastas** lado a lado (grelha com diferenças, conflitos, ficheiros só num lado)
