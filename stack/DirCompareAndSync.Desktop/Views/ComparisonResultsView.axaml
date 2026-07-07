@@ -1,0 +1,370 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DirCompareAndSync.Desktop.ViewModels"
+             xmlns:controls="using:DirCompareAndSync.Desktop.Controls"
+             x:Class="DirCompareAndSync.Desktop.Views.ComparisonResultsView"
+             x:DataType="vm:MainWindowViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="MenuItem.context-menu-item">
+      <Setter Property="FontSize" Value="12"/>
+    </Style>
+    <Style Selector="Button.tree-toggle">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Width" Value="18"/>
+      <Setter Property="Height" Value="18"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="Foreground" Value="{StaticResource BrushTextMuted}"/>
+    </Style>
+    <Style Selector="Button.tree-toggle:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#D6E4F0"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Grid Grid.IsSharedSizeScope="True"
+        ColumnDefinitions="*,5,Auto,5,*"
+        RowDefinitions="Auto,*">
+
+    <Grid Grid.Row="0" Grid.Column="0" Margin="6,0,0,0" MinHeight="26"
+          HorizontalAlignment="Stretch">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto" SharedSizeGroup="LeftSize" MinWidth="56"/>
+        <ColumnDefinition Width="Auto" SharedSizeGroup="LeftDate" MinWidth="118"/>
+      </Grid.ColumnDefinitions>
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+        <Button Classes="tree-toggle" Width="16" Height="16"
+                Command="{Binding ToggleExpandAllFoldersCommand}"
+                ToolTip.Tip="Expandir ou encolher todas as pastas">
+          <Border BorderBrush="{StaticResource BrushTextMuted}" BorderThickness="1" CornerRadius="2"
+                  Width="13" Height="13">
+            <Panel>
+              <TextBlock Text="+" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushText}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                         IsVisible="{Binding !AreAllFoldersExpanded}"/>
+              <TextBlock Text="&#8722;" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushText}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                         IsVisible="{Binding AreAllFoldersExpanded}"/>
+            </Panel>
+          </Border>
+        </Button>
+        <TextBlock Classes="diff-header" Text="Caminho relativo" VerticalAlignment="Center"/>
+      </StackPanel>
+      <TextBlock Grid.Column="1" Classes="diff-header" Text="Tamanho" Margin="8,0,8,0"
+                 HorizontalAlignment="Right" VerticalAlignment="Center"/>
+      <TextBlock Grid.Column="2" Classes="diff-header" Text="Data alteração"
+                 HorizontalAlignment="Right" VerticalAlignment="Center"/>
+    </Grid>
+
+    <Border Grid.Row="0" Grid.Column="2" Background="#E8F5E9" MinWidth="64" MinHeight="26">
+      <StackPanel Orientation="Horizontal" Spacing="4"
+                  HorizontalAlignment="Center" VerticalAlignment="Center">
+        <CheckBox Classes="diff-action-checkbox"
+                  IsChecked="{Binding AreAllRowsSelected, Mode=TwoWay}"
+                  ToolTip.Tip="Seleccionar ou retirar todas as acções visíveis"/>
+        <TextBlock Classes="diff-header" Text="Ação" VerticalAlignment="Center"/>
+      </StackPanel>
+    </Border>
+
+    <Grid Grid.Row="0" Grid.Column="4" Margin="0,0,6,0" MinHeight="26"
+          HorizontalAlignment="Stretch">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto" SharedSizeGroup="RightSize" MinWidth="56"/>
+        <ColumnDefinition Width="Auto" SharedSizeGroup="RightDate" MinWidth="118"/>
+      </Grid.ColumnDefinitions>
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+        <Button Classes="tree-toggle" Width="16" Height="16"
+                Command="{Binding ToggleExpandAllFoldersCommand}"
+                ToolTip.Tip="Expandir ou encolher todas as pastas">
+          <Border BorderBrush="{StaticResource BrushTextMuted}" BorderThickness="1" CornerRadius="2"
+                  Width="13" Height="13">
+            <Panel>
+              <TextBlock Text="+" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushText}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                         IsVisible="{Binding !AreAllFoldersExpanded}"/>
+              <TextBlock Text="&#8722;" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushText}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                         IsVisible="{Binding AreAllFoldersExpanded}"/>
+            </Panel>
+          </Border>
+        </Button>
+        <TextBlock Classes="diff-header" Text="Caminho relativo" VerticalAlignment="Center"/>
+      </StackPanel>
+      <TextBlock Grid.Column="1" Classes="diff-header" Text="Tamanho" Margin="8,0,8,0"
+                 HorizontalAlignment="Right" VerticalAlignment="Center"/>
+      <TextBlock Grid.Column="2" Classes="diff-header" Text="Data alteração"
+                 HorizontalAlignment="Right" VerticalAlignment="Center"/>
+    </Grid>
+
+    <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5"
+            Background="#EEF4FB" BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1"
+            IsHitTestVisible="False" ZIndex="-1"/>
+
+    <GridSplitter Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                  Classes="grid-splitter" ResizeDirection="Columns"
+                  ToolTip.Tip="Arrastar para redimensionar colunas da grelha"/>
+    <GridSplitter Grid.Row="0" Grid.Column="3" Grid.RowSpan="2"
+                  Classes="grid-splitter" ResizeDirection="Columns"
+                  ToolTip.Tip="Arrastar para redimensionar colunas da grelha"/>
+
+    <ListBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"
+             Classes="comparison-results"
+             ItemsSource="{Binding DiffRows}"
+             DoubleTapped="OnResultsDoubleTapped"
+             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+             ScrollViewer.VerticalScrollBarVisibility="Auto">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:DiffRowViewModel">
+          <Grid ColumnDefinitions="*,5,Auto,5,*" MinHeight="22" HorizontalAlignment="Stretch">
+            <Grid.ContextMenu>
+              <ContextMenu>
+                <MenuItem Classes="context-menu-item" Header="Escolher direcção: →"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SetRowDirectionLeftToRightCommand}"
+                          CommandParameter="{Binding}"
+                          ToolTip.Tip="Copiar do lado esquerdo para o direito"/>
+                <MenuItem Classes="context-menu-item" Header="Escolher direcção: —"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SetRowDirectionIgnoreCommand}"
+                          CommandParameter="{Binding}"
+                          ToolTip.Tip="Ignorar este ficheiro na sincronização"/>
+                <MenuItem Classes="context-menu-item" Header="Escolher direcção: ←"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SetRowDirectionRightToLeftCommand}"
+                          CommandParameter="{Binding}"
+                          ToolTip.Tip="Copiar do lado direito para o esquerdo"/>
+                <Separator/>
+                <MenuItem Classes="context-menu-item" Header="{Binding SyncScopeMenuHeader}"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SyncRowScopeCommand}"
+                          CommandParameter="{Binding}"
+                          ToolTip.Tip="Executar sincronização apenas para este ficheiro ou pasta (e conteúdo)"/>
+                <Separator/>
+                <MenuItem Classes="context-menu-item" Header="Incluir via filtro" ToolTip.Tip="Adicionar regra de inclusão aos filtros">
+                  <MenuItem Header="Este ficheiro (nome)"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IncludeFileViaFilterCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Incluir ficheiros com este nome"/>
+                  <MenuItem Header="Caminho relativo completo"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IncludeFilePathViaFilterCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Incluir este caminho exacto"/>
+                  <MenuItem Header="Esta pasta (nome)"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IncludeFolderViaFilterCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Incluir pasta pelo nome"/>
+                  <MenuItem Header="Árvore desta pasta"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IncludeFolderTreeViaFilterCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Incluir esta pasta e subpastas"/>
+                </MenuItem>
+                <MenuItem Classes="context-menu-item" Header="Excluir via filtro" ToolTip.Tip="Adicionar regra de exclusão aos filtros">
+                  <MenuItem Header="Este ficheiro (nome)"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExcludeFileViaFilterCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Excluir ficheiros com este nome"/>
+                  <MenuItem Header="Caminho relativo completo"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExcludeFilePathViaFilterCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Excluir este caminho exacto"/>
+                  <MenuItem Header="Esta pasta (nome)"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExcludeFolderViaFilterCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Excluir pasta pelo nome"/>
+                  <MenuItem Header="Árvore desta pasta"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExcludeFolderTreeViaFilterCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Excluir esta pasta e subpastas"/>
+                  <MenuItem Header="{Binding ExtensionFilterMenuHeader}"
+                            IsEnabled="{Binding HasFileExtension}"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExcludeExtensionViaFilterCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Excluir ficheiros com a mesma extensão"/>
+                </MenuItem>
+                <MenuItem Classes="context-menu-item" Header="Excluir temporariamente"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExcludeRowTemporarilyCommand}"
+                          CommandParameter="{Binding}"
+                          ToolTip.Tip="Ocultar desta comparação sem alterar filtros guardados"/>
+                <Separator/>
+                <MenuItem Classes="context-menu-item" Header="Aplicar filtros (recomparar)"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RecompareAfterFilterChangeCommand}"
+                          ToolTip.Tip="Guardar filtros e voltar a comparar"/>
+                <Separator/>
+                <MenuItem Classes="context-menu-item" Header="Mostrar no Explorer" ToolTip.Tip="Abrir pasta no Explorador de Ficheiros">
+                  <MenuItem Header="Lado esquerdo"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowRowLeftInExplorerCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Seleccionar ficheiro no Explorador (esquerda)"/>
+                  <MenuItem Header="Lado direito"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowRowRightInExplorerCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Seleccionar ficheiro no Explorador (direita)"/>
+                </MenuItem>
+                <MenuItem Classes="context-menu-item" Header="Abrir com aplicação associada" ToolTip.Tip="Abrir ficheiro com a app predefinida do Windows">
+                  <MenuItem Header="Ficheiro à esquerda"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenRowLeftWithAppCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Abrir ficheiro do lado esquerdo"/>
+                  <MenuItem Header="Ficheiro à direita"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenRowRightWithAppCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Abrir ficheiro do lado direito"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Classes="context-menu-item" Header="Marcar para apagar"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SetRowDeleteCommand}"
+                          CommandParameter="{Binding}"
+                          ToolTip.Tip="Marcar ficheiro para eliminação na sincronização"/>
+              </ContextMenu>
+            </Grid.ContextMenu>
+
+            <Border Grid.Column="0" Classes="diff-row"
+                    Classes.diff-row-equal="{Binding IsEqualRow}"
+                    Classes.diff-row-changed="{Binding IsChangedRow}"
+                    Classes.diff-row-conflict="{Binding IsConflictRow}"
+                    Classes.diff-row-copy-right="{Binding IsActionLtr}"
+                    Classes.diff-row-copy-left="{Binding IsActionRtl}"
+                    HorizontalAlignment="Stretch">
+              <Grid Margin="6,2,2,2" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="LeftSize" MinWidth="56"/>
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="LeftDate" MinWidth="118"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                  <Border Width="{Binding IndentWidth}"/>
+                  <Panel Width="18" IsVisible="{Binding CanToggleExpandLeft}">
+                    <Button Classes="tree-toggle"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleFolderExpandCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Expandir/encolher pasta">
+                      <Panel Width="16" Height="16">
+                        <PathIcon Width="16" Height="16" Foreground="#C9A227"
+                                  Data="M10,4 L4,4 C2.89,4 2.01,4.89 2.01,6 L2,18 C2,19.11 2.89,20 4,20 L20,20 C21.11,20 22,19.11 22,18 L22,8 C22,6.89 21.11,6 20,6 L12,6 L10,4 Z"/>
+                        <TextBlock Text="+" FontSize="9" FontWeight="Bold" Foreground="#2E2E2E"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,3,0,0"
+                                   IsVisible="{Binding IsCollapsed}"/>
+                        <TextBlock Text="&#8722;" FontSize="9" FontWeight="Bold" Foreground="#2E2E2E"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,3,0,0"
+                                   IsVisible="{Binding IsExpanded}"/>
+                      </Panel>
+                    </Button>
+                  </Panel>
+                </StackPanel>
+                <controls:DiffPathInlineView Grid.Column="1"
+                                             Parts="{Binding LeftPathParts}"
+                                             SuppressLeadingFolderIcon="{Binding CanToggleExpandLeft}"
+                                             VerticalAlignment="Center"
+                                             ToolTip.Tip="{Binding LeftPathDisplay}"/>
+                <TextBlock Grid.Column="2" Text="{Binding LeftSize}" FontSize="11" Classes="muted"
+                           Margin="8,0,8,0"
+                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="3" Text="{Binding LeftDate}" FontSize="11" Classes="muted"
+                           HorizontalAlignment="Right" VerticalAlignment="Center"
+                           ToolTip.Tip="{Binding LeftDate}"/>
+              </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Classes="diff-row"
+                    Classes.diff-row-equal="{Binding IsEqualRow}"
+                    Classes.diff-row-changed="{Binding IsChangedRow}"
+                    Classes.diff-row-conflict="{Binding IsConflictRow}"
+                    Classes.diff-row-copy-right="{Binding IsActionLtr}"
+                    Classes.diff-row-copy-left="{Binding IsActionRtl}"
+                    MinWidth="64">
+              <StackPanel Orientation="Horizontal" Spacing="2"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2">
+                <CheckBox Classes="diff-action-checkbox"
+                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                          IsEnabled="{Binding HasAction}"
+                          IsVisible="{Binding HasAction}"/>
+                <Border Classes="diff-action-badge diff-action-badge-ltr"
+                        IsVisible="{Binding IsActionLtr}"
+                        ToolTip.Tip="{Binding StateLabel}">
+                  <PathIcon Classes="diff-arrow diff-arrow-ltr"
+                            Data="{StaticResource SyncArrowRightPath}"/>
+                </Border>
+                <Border Classes="diff-action-badge diff-action-badge-rtl"
+                        IsVisible="{Binding IsActionRtl}"
+                        ToolTip.Tip="{Binding StateLabel}">
+                  <PathIcon Classes="diff-arrow diff-arrow-rtl"
+                            Data="{StaticResource SyncArrowLeftPath}"/>
+                </Border>
+                <TextBlock Text="{Binding ActionSymbol}"
+                           Classes="diff-action"
+                           Classes.action-delete="{Binding IsActionDelete}"
+                           Classes.action-conflict="{Binding IsActionConflict}"
+                           Classes.action-none="{Binding IsActionNone}"
+                           FontSize="17" FontWeight="Bold" VerticalAlignment="Center"
+                           IsVisible="{Binding IsActionDelete}"
+                           ToolTip.Tip="{Binding StateLabel}"/>
+                <TextBlock Text="{Binding ActionSymbol}"
+                           Classes="diff-action"
+                           Classes.action-conflict="{Binding IsActionConflict}"
+                           FontSize="17" FontWeight="Bold" VerticalAlignment="Center"
+                           IsVisible="{Binding IsActionConflict}"
+                           ToolTip.Tip="{Binding StateLabel}"/>
+                <Border Classes="diff-action-badge diff-action-badge-equal"
+                        IsVisible="{Binding IsActionNone}"
+                        ToolTip.Tip="{Binding StateLabel}">
+                  <PathIcon Classes="diff-equal" Data="{StaticResource SyncEqualPath}"/>
+                </Border>
+              </StackPanel>
+            </Border>
+
+            <Border Grid.Column="4" Classes="diff-row"
+                    Classes.diff-row-equal="{Binding IsEqualRow}"
+                    Classes.diff-row-changed="{Binding IsChangedRow}"
+                    Classes.diff-row-conflict="{Binding IsConflictRow}"
+                    Classes.diff-row-copy-right="{Binding IsActionLtr}"
+                    Classes.diff-row-copy-left="{Binding IsActionRtl}"
+                    HorizontalAlignment="Stretch">
+              <Grid Margin="2,2,6,2" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="RightSize" MinWidth="56"/>
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="RightDate" MinWidth="118"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                  <Border Width="{Binding IndentWidth}"/>
+                  <Panel Width="18" IsVisible="{Binding CanToggleExpandRight}">
+                    <Button Classes="tree-toggle"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleFolderExpandCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Expandir/encolher pasta">
+                      <Panel Width="16" Height="16">
+                        <PathIcon Width="16" Height="16" Foreground="#C9A227"
+                                  Data="M10,4 L4,4 C2.89,4 2.01,4.89 2.01,6 L2,18 C2,19.11 2.89,20 4,20 L20,20 C21.11,20 22,19.11 22,18 L22,8 C22,6.89 21.11,6 20,6 L12,6 L10,4 Z"/>
+                        <TextBlock Text="+" FontSize="9" FontWeight="Bold" Foreground="#2E2E2E"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,3,0,0"
+                                   IsVisible="{Binding IsCollapsed}"/>
+                        <TextBlock Text="&#8722;" FontSize="9" FontWeight="Bold" Foreground="#2E2E2E"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,3,0,0"
+                                   IsVisible="{Binding IsExpanded}"/>
+                      </Panel>
+                    </Button>
+                  </Panel>
+                </StackPanel>
+                <controls:DiffPathInlineView Grid.Column="1"
+                                             Parts="{Binding RightPathParts}"
+                                             SuppressLeadingFolderIcon="{Binding CanToggleExpandRight}"
+                                             VerticalAlignment="Center"
+                                             ToolTip.Tip="{Binding RightPathDisplay}"/>
+                <TextBlock Grid.Column="2" Text="{Binding RightSize}" FontSize="11" Classes="muted"
+                           Margin="8,0,8,0"
+                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="3" Text="{Binding RightDate}" FontSize="11" Classes="muted"
+                           HorizontalAlignment="Right" VerticalAlignment="Center"
+                           ToolTip.Tip="{Binding RightDate}"/>
+              </Grid>
+            </Border>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </Grid>
+</UserControl>
